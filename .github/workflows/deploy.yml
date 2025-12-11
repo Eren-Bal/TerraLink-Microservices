@@ -1,0 +1,49 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Kodları Çekmek için
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # 2. Docker Hub'a Giriş Yapmak için
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # 3. İmajları Oluştur ve Gönder demek için
+    - name: Build and Push Docker Images
+      run: |
+        # Backend'i 'v1' etiketiyle güncelle (Mevcut sunucu ayarı bozulmasın diye)
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/url-shortener-api:v1 ./backend
+        docker push ${{ secrets.DOCKER_USERNAME }}/url-shortener-api:v1
+        
+        # Frontend'i 'v1' etiketiyle güncelle
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/url-shortener-ui:v1 ./frontend
+        docker push ${{ secrets.DOCKER_USERNAME }}/url-shortener-ui:v1
+
+    # 4. Sunucuya Bağlan ve Güncelle demek
+    - name: Deploy to AWS Server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST_IP }}
+        username: ubuntu
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Proje klasörüne gider
+          cd /home/ubuntu
+          
+          # Yeni imajları çekmek için
+          sudo docker-compose pull
+          
+          # Sistemi yeniden başlatır güncelleme için
+          sudo docker-compose up -d --force-recreate
