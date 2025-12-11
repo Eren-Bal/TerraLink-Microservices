@@ -53,11 +53,15 @@ jobs:
           # --- 2. GÜNCELLEME ---
           cd /home/ubuntu
           
-          # Eski çöp dosyaları temizle (Disk dolmasın)
+          # ÖNCE ESKİYİ TAMAMEN KAPAT VE SİL (KeyError Hatasını Çözer)
+          # Bu komut mevcut konteynerleri durdurur ve siler.
+          sudo docker-compose down --remove-orphans
+          
+          # Gereksiz imajları temizle
           sudo docker system prune -f
           
-          # Yeni versiyonu çek (Artık RAM yeteceği için patlamaz)
+          # Yeni versiyonu çek
           sudo docker-compose pull
           
-          # Sistemi yeniden başlat
-          sudo docker-compose up -d --force-recreate
+          # Sistemi sıfırdan başlat
+          sudo docker-compose up -d
