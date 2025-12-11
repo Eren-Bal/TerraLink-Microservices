@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # 1. API (Backend)
+  api:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_HOST=redis_db
+      - REDIS_PORT=6379
+    depends_on:
+      - redis_db
+
+  # 2. UI (Frontend) <-- YENİ EKLENEN KISIM
+  ui:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    stdin_open: true # React'in kapanmaması için gerekli
+    tty: true
+
+  # 3. Veritabanı
+  redis_db:
+    image: redis:alpine
+    ports:
+      - "6379:6379"

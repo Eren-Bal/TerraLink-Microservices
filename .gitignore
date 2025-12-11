@@ -1,0 +1,18 @@
+# Terraform Klasörleri (Garanti olsun diye farklý varyasyonlar)
+.terraform/
+terraform/.terraform/
+**/.terraform/*
+
+# Dosya Uzantýlarý (Büyük ve Gereksizler)
+*.exe
+*.log
+*.tfstate
+*.tfstate.backup
+*.lock.hcl
+
+# Anahtarlar (GÜVENLÝK)
+*.pem
+devops-key
+devops-key.pub
+terraform/devops-key
+terraform/devops-key.pub
