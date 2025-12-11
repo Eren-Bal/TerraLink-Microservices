@@ -31,7 +31,7 @@ jobs:
         docker build -t ${{ secrets.DOCKER_USERNAME }}/url-shortener-ui:v1 ./frontend
         docker push ${{ secrets.DOCKER_USERNAME }}/url-shortener-ui:v1
 
-    # 4. Sunucuya Bağlan ve Güncelle demek
+    # 4. Sunucuya Bağlan ve Güncelle
     - name: Deploy to AWS Server
       uses: appleboy/ssh-action@master
       with:
@@ -39,11 +39,25 @@ jobs:
         username: ubuntu
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          # Proje klasörüne gider
+          # --- 1. RAM DESTEĞİ (SWAP) OLUŞTUR ---
+          # t3.micro sunucusu kilitlenmesin diye 1GB sanal bellek ekliyoruz.
+          if [ ! -f /swapfile ]; then
+            sudo fallocate -l 1G /swapfile
+            sudo chmod 600 /swapfile
+            sudo mkswap /swapfile
+            sudo swapon /swapfile
+            echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+            echo "Swap Alani Olusturuldu!"
+          fi
+
+          # --- 2. GÜNCELLEME ---
           cd /home/ubuntu
           
-          # Yeni imajları çekmek için
+          # Eski çöp dosyaları temizle (Disk dolmasın)
+          sudo docker system prune -f
+          
+          # Yeni versiyonu çek (Artık RAM yeteceği için patlamaz)
           sudo docker-compose pull
           
-          # Sistemi yeniden başlatır güncelleme için
+          # Sistemi yeniden başlat
           sudo docker-compose up -d --force-recreate
